@@ -6,70 +6,205 @@
 <style>
 :root{--bg:#EEF3F4;--card:#fff;--ink:#12232B;--mute:#5B6E76;--line:#D3DEE2;--teal:#006B80;--new:#2F8FB0;--mid:#C98A00;--old:#C0392B;--chip:#E3EDF0}
 @media(prefers-color-scheme:dark){:root{--bg:#0E1A20;--card:#15262E;--ink:#E6EEF1;--mute:#8FA3AB;--line:#24383F;--chip:#1F343C}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,"Segoe UI",Roboto,Arial,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
 header{position:sticky;top:0;z-index:2;background:var(--teal);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;padding-top:calc(10px + env(safe-area-inset-top))}
 header h1{font-size:17px;margin:0;flex:1;font-weight:650}header small{opacity:.8}
-button{font:inherit;border:0;border-radius:8px;padding:8px 12px;background:var(--chip);color:var(--ink);cursor:pointer}
-header button{background:rgba(255,255,255,.18);color:#fff}button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
-main{max-width:820px;margin:0 auto;padding:12px}
-.bar{display:flex;gap:8px;margin-bottom:10px}.bar input{flex:1}
+button,.btn{font:inherit;border:0;border-radius:8px;padding:8px 12px;background:var(--chip);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-block}
+header button{background:rgba(255,255,255,.18);color:#fff}button:focus-visible,input:focus-visible,.btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+main{max-width:820px;margin:0 auto;padding:12px}.bar{display:flex;gap:8px;margin-bottom:10px}.bar input{flex:1}
 input{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
 .tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button.on{background:var(--teal);color:#fff}
 .summary{display:flex;gap:16px;align-items:baseline;margin:2px 2px 10px}.summary b{font-size:28px}.summary span{color:var(--mute)}
 .card{background:var(--card);border-radius:10px;padding:11px 12px 11px 16px;margin-bottom:8px;position:relative;border:1px solid var(--line)}
 .card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:10px 0 0 10px;background:var(--rail)}
-.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.st{font-weight:650}.age{color:var(--mute);font-size:13px;white-space:nowrap}
-.lab{font-weight:600;color:var(--teal);margin:2px 0;word-break:break-word}
-@media(prefers-color-scheme:dark){.lab{color:#6CC4DB}}
+.card.done{opacity:.62}.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.st{font-weight:650}.age{color:var(--mute);font-size:13px}
+.when,.by{color:var(--mute);font-size:13px}.by{margin-top:4px;font-weight:600}
+.lab{font-weight:600;color:var(--teal);margin:2px 0;word-break:break-word}@media(prefers-color-scheme:dark){.lab{color:#6CC4DB}}
 .txt{white-space:pre-wrap;word-break:break-word;margin:4px 0;max-height:7.4em;overflow:hidden;cursor:pointer}.card.open .txt{max-height:none}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chip{background:var(--chip);border-radius:6px;padding:2px 8px;font-size:13px}
-.card a{color:var(--teal);font-size:14px;margin-left:auto}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chip{background:var(--chip);border-radius:6px;padding:2px 8px;font-size:13px;color:var(--ink);text-decoration:none}
+a.chip{color:var(--teal);font-weight:600}.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.acts .btn{flex:1;text-align:center;min-width:130px}
+.btn.pri{background:var(--teal);color:#fff}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .s{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:start;display:block;width:100%}.s b{font-size:22px}.s.z{opacity:.55}.s span{display:block;color:var(--mute);font-size:13px}
-.empty,.err{padding:24px 8px;text-align:center;color:var(--mute)}.err{color:var(--old)}
+.empty,.err{padding:24px 8px;text-align:center;color:var(--mute)}.err{color:var(--old)}.hint{background:var(--chip);border-radius:8px;padding:8px 12px;margin-bottom:10px;cursor:pointer}
+select,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}textarea{resize:vertical;min-height:96px}
+.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:3;background:var(--teal);color:#fff;border-radius:28px;padding:14px 20px;font-weight:650;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.s{position:relative;padding:0}.sb{background:none;width:100%;text-align:start;padding:10px;border-radius:10px;display:block}.cam{position:absolute;right:6px;top:6px;padding:4px 8px}
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:6;display:flex;align-items:flex-end;justify-content:center}#sheet[hidden]{display:none}
+.sh{background:var(--bg);width:100%;max-width:560px;max-height:94vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px}.sh h2{margin:0 0 8px}.sh label.l{display:block;margin:12px 0 4px;font-weight:600}.req{color:var(--old)}
+.photos{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.ph{position:relative;width:76px;height:76px}.ph img{width:100%;height:100%;object-fit:cover;border-radius:8px}.ph button{position:absolute;top:-6px;right:-6px;padding:0;width:22px;height:22px;border-radius:50%;background:var(--old);color:#fff;line-height:22px}
+.sh.big{max-width:760px}#imp{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:6;display:flex;align-items:flex-end;justify-content:center}#imp[hidden]{display:none}
+.ig{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:0 0 10px;overflow:hidden}.igh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:var(--chip);flex-wrap:wrap}
+.igh label,.ir label{display:flex;align-items:center;gap:6px}.igh input,.ir>input{width:auto}.mg{font-size:13px;color:var(--mute)}
+.ir{display:flex;gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:flex-start}.ir.off{opacity:.55}.ir>input{margin-top:6px;width:20px;height:20px;flex:none}.ib{flex:1;min-width:0}
+.il{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px}.il b{color:var(--teal)}.il select{width:auto;max-width:48%;padding:4px 6px;font-size:13px;margin-left:auto}
+.itx{min-height:44px;font-size:14px;padding:6px 8px}.bd{font-size:12px;border-radius:6px;padding:1px 6px;background:var(--chip)}
+.stick{position:sticky;bottom:-16px;background:var(--bg);padding:10px 0 4px;display:flex;gap:8px;flex-wrap:wrap}.stick .btn{flex:1;min-width:120px;text-align:center}
+.tools{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.tools .btn{padding:6px 10px;font-size:14px}
+.btn[disabled],button:disabled{opacity:.5}.note{color:var(--mute);font-size:13px;margin:6px 0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#12232B;color:#fff;padding:10px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:5;max-width:90vw;text-align:center}#toast.on{opacity:.95}
 #setup{max-width:460px;margin:8vh auto;padding:16px}#setup label{display:block;margin:12px 0 4px}#setup button{margin-top:16px;background:var(--teal);color:#fff;width:100%}
 </style></head><body>
-<header><h1>Trouble RedLine <small id="upd"></small></h1><button id="ref" aria-label="Обновить">Обновить</button><button id="cfg" aria-label="Подключение">⚙</button></header>
+<header><h1>Trouble RedLine <small id="upd"></small></h1><button id="impb" aria-label="Импорт списка станций" title="Импорт списка">📋 Импорт</button><button id="ref" aria-label="Обновить">Обновить</button><button id="cfg" aria-label="Подключение">⚙</button></header>
 <div id="setup" hidden>
  <h2>Подключение к таблице</h2><p>Вставьте адрес веб-приложения Apps Script (оканчивается на /exec) и секретный ключ WEB_KEY. Они хранятся только на этом устройстве.</p>
  <label for="u">Адрес /exec</label><input id="u" inputmode="url" autocomplete="off"><label for="k">Ключ</label><input id="k" type="password" autocomplete="off">
- <button id="save">Подключить</button></div>
+ <label for="n">Ваше имя (для отметки «кто закрыл»)</label><input id="n" autocomplete="off"><button id="save">Подключить</button></div>
 <main id="app" hidden>
- <div class="tabs"><button data-t="feed" class="on">Открытые</button><button data-t="st">Станции</button></div>
- <div class="bar"><input id="q" type="search" placeholder="Поиск: станция, адрес, номер, текст"><button id="clr" hidden>Все станции</button></div>
- <div id="out"></div></main>
+ <div class="tabs"><button data-t="feed" class="on">Открытые</button><button data-t="closed">Закрытые</button><button data-t="st">Станции</button></div>
+ <div class="bar"><input id="q" type="search" placeholder="Поиск: станция, адрес M1-72, номер, текст"><button id="clr" hidden>Все станции</button></div>
+ <div id="out"></div></main><button id="fab" class="fab" hidden>📷 Новая крия</button>
+<div id="sheet" hidden><div class="sh" role="dialog" aria-label="Новая крия"><h2>Новая крия</h2>
+ <label class="l" for="fs">Станция</label><select id="fs"></select>
+ <label class="l" for="ft">Описание проблемы <span class="req">*</span></label><textarea id="ft" dir="auto" placeholder="Что случилось, где (комната, адрес M1-72), Call ID…"></textarea>
+ <div class="photos" id="fp"></div>
+ <div class="acts"><label class="btn" for="fcam">📷 Снять</label><label class="btn" for="fgal">🖼 Из галереи</label></div>
+ <input id="fcam" type="file" accept="image/*" capture="environment" hidden><input id="fgal" type="file" accept="image/*" multiple hidden>
+ <div class="note">Фото до 6 штук. На компьютере можно вставить скриншот через Ctrl+V.</div>
+ <div class="acts"><button id="toimp" class="btn">📋 Это список со многих станций</button></div>
+ <div class="acts"><button id="fcancel" class="btn">Отмена</button><button id="fsend" class="btn pri" disabled>Создать крию</button></div></div></div>
+<div id="imp" hidden><div class="sh big" role="dialog" aria-label="Импорт списка крий">
+ <div id="i1"><h2>Импорт списка</h2><div class="note">Скриншот списка Simplex (до 3 штук) или текст. Станция определяется по номеру node: 20 → TTR 25, 85 → TTR 16 Elifelet и т. д.</div>
+  <textarea id="it" dir="auto" placeholder="Или вставьте скопированный текст списка…"></textarea><div class="photos" id="ip"></div>
+  <div class="acts"><label class="btn" for="icam">📷 Снять</label><label class="btn" for="igal">🖼 Из галереи</label></div>
+  <input id="icam" type="file" accept="image/*" capture="environment" hidden><input id="igal" type="file" accept="image/*" multiple hidden>
+  <div class="note">На компьютере скриншот можно вставить через Ctrl+V.</div>
+  <div class="acts"><button id="iclose" class="btn">Закрыть</button><button id="iscan" class="btn pri">Распознать</button></div></div>
+ <div id="i2" hidden><h2>Проверьте список</h2><div class="note" id="isum"></div>
+  <div class="tools"><button class="btn" id="iall">Выбрать все</button><button class="btn" id="inone">Снять все</button><button class="btn" id="inew">Только новые</button></div>
+  <div id="ilist"></div><div class="stick"><button id="iback" class="btn">Назад</button><button id="icreate" class="btn pri" disabled>Создать</button></div></div>
+ <div id="i3" hidden><h2>Готово</h2><div id="ires"></div><div class="acts"><button id="idone" class="btn pri">Закрыть</button></div></div></div></div>
+<div id="toast"></div>
 <script>
-const $=s=>document.querySelector(s),L=localStorage;let D=null,tab='feed',pick=null,busy=false;
+const $=s=>document.querySelector(s),L=localStorage;let D=null,tab='feed',pick=null,busy=false,err='';
 const hp=new URLSearchParams(location.hash.slice(1)),TG=hp.get('tgWebAppData')||'',X=new URLSearchParams(location.search).get('x');
 if(X&&/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(X))L.setItem('tr_u',X);
 if(TG){const sc=document.createElement('script');sc.src='https://telegram.org/js/telegram-web-app.js';sc.onload=()=>{try{Telegram.WebApp.ready();Telegram.WebApp.expand();Telegram.WebApp.setHeaderColor('#006B80')}catch(_){}};document.head.appendChild(sc);$('#cfg').hidden=true;}
-const cfg=()=>({u:L.getItem('tr_u')||'',k:L.getItem('tr_k')||''});
+try{D=JSON.parse(L.getItem('tr_cache'))}catch(_){}
+const cfg=()=>({u:L.getItem('tr_u')||'',k:L.getItem('tr_k')||'',n:L.getItem('tr_n')||''});
 const days=t=>Math.floor((Date.now()-t)/864e5),rail=d=>d<=2?'var(--new)':d<=7?'var(--mid)':'var(--old)';
 const ago=t=>{const m=Math.floor((Date.now()-t)/6e4);return m<60?m+' мин':m<1440?Math.floor(m/60)+' ч':Math.floor(m/1440)+' дн'};
+const fmt=t=>new Date(t).toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const hhmm=()=>new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function show(){const c=cfg(),ok=TG?c.u:(c.u&&c.k);if(TG&&!c.u){$('#app').hidden=false;$('#out').innerHTML='<div class="err">Откройте приложение кнопкой «Trouble» в чате с ботом.</div>';return}$('#setup').hidden=!!ok;$('#app').hidden=!ok;if(ok)load();}
-async function load(){if(busy)return;busy=true;const c=cfg();
- try{const r=await fetch(c.u+'?api=state&'+(TG?'initData='+encodeURIComponent(TG):'key='+encodeURIComponent(c.k))),j=await r.json();
-  if(!j.ok)throw new Error(j.error==='auth'?(TG?'Нет доступа: ваш Telegram ID не добавлен в WEB_USER_IDS или INTAKE_USER_IDS.':'Неверный ключ. Проверьте WEB_KEY в свойствах скрипта.'):j.error);
-  D=j.data;L.setItem('tr_cache',JSON.stringify(D));$('#upd').textContent=new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});render();}
- catch(e){if(!D){try{D=JSON.parse(L.getItem('tr_cache'))}catch(_){}}render(e.message==='Failed to fetch'?'Нет связи с таблицей. Показаны последние сохранённые данные.':e.message);}
- busy=false;}
-function render(err){const o=$('#out');if(!D){o.innerHTML='<div class="err">'+esc(err||'Нет данных')+'</div>';return;}
- const q=$('#q').value.trim().toLowerCase(),st=D.stations;$('#clr').hidden=pick===null;
- let h=err?'<div class="err">'+esc(err)+'</div>':'';
- if(tab==='st'){h+='<div class="grid">'+st.map(s=>'<button class="s'+(s.open?'':' z')+'" data-i="'+s.i+'"><b style="color:'+(s.open?'var(--old)':'var(--mute)')+'">'+s.open+'</b><span>'+esc(s.name)+'</span></button>').join('')+'</div>';}
- else{const items=D.items.filter(x=>(pick===null||x.i===pick)&&(!q||(st[x.i].name+' '+x.label+' '+x.text+' '+x.call+' '+x.asr+' '+x.sc).toLowerCase().includes(q)));
-  h+='<div class="summary"><b>'+items.length+'</b><span>открытых'+(pick!==null?' · '+esc(st[pick].name):'')+'</span></div>';
-  h+=items.length?items.map(x=>{const d=days(x.at);return '<div class="card" style="--rail:'+rail(d)+'"><div class="row"><span class="st">'+esc(st[x.i].name)+'</span><span class="age">'+ago(x.at)+' · #'+esc(x.id)+'</span></div>'+
-   (x.label?'<div class="lab" dir="ltr">'+esc(x.label)+'</div>':'')+'<div class="txt" dir="auto">'+esc(x.text)+'</div>'+
-   '<div class="chips">'+[['Call',x.call],['ASR',x.asr],['SC',x.sc]].filter(a=>a[1]).map(a=>'<span class="chip">'+a[0]+' '+esc(a[1].replace(/\n/g,', '))+'</span>').join('')+'<a href="'+esc(x.url)+'" target="_blank" rel="noopener">Открыть в таблице</a></div></div>'}).join(''):'<div class="empty">Открытых крий по этому фильтру нет.</div>';}
- o.innerHTML=h;}
-$('#out').onclick=e=>{const s=e.target.closest('.s');if(s){pick=+s.dataset.i;tab='feed';sync();render();return}const t=e.target.closest('.txt');if(t)t.parentElement.classList.toggle('open');};
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;sync();render()});
+function toast(m,ms){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),ms||2200)}
+function show(){const c=cfg(),ok=TG?c.u:(c.u&&c.k);if(TG&&!c.u){$('#app').hidden=false;$('#out').innerHTML='<div class="err">Откройте приложение кнопкой «Trouble» в чате с ботом.</div>';return}
+ $('#setup').hidden=!!ok;$('#app').hidden=!ok;$('#fab').hidden=!ok;$('#impb').hidden=!ok;if(ok){render();load()}}
+function url(api,extra){const c=cfg();return c.u+'?api='+api+'&'+(TG?'initData='+encodeURIComponent(TG):'key='+encodeURIComponent(c.k)+'&who='+encodeURIComponent(c.n||'Web'))+(extra||'')+'&t='+Date.now()}
+async function call(api,extra){let last;for(let n=0;n<3;n++){try{const r=await fetch(url(api,extra)),t=await r.text();let j;try{j=JSON.parse(t)}catch(_){throw new Error('Google-сервер не ответил (идёт «пробуждение» скрипта). Повторите через минуту.')}
+ if(!j.ok)throw new Error(j.error==='auth'?(TG?'Нет доступа: ваш Telegram ID не добавлен в WEB_USER_IDS или INTAKE_USER_IDS.':'Неверный ключ. Проверьте WEB_KEY.'):j.error);return j.data}
+ catch(e){last=e;if(/^(Неверный|Нет доступа)/.test(e.message))break;await new Promise(r=>setTimeout(r,1500))}}
+ throw last.message==='Failed to fetch'?new Error('Нет связи. Показаны сохранённые данные.'):last}
+async function load(manual){if(busy)return;busy=true;
+ try{D=await call('state');L.setItem('tr_cache',JSON.stringify(D));err='';$('#upd').textContent=hhmm();if(manual){scrollTo({top:0,behavior:'smooth'});toast('Обновлено '+hhmm())}}
+ catch(e){err=e.message;if(manual)toast('Не удалось обновить')}busy=false;render()}
+function card(x){const st=D.stations[x.i];
+ return '<div class="card'+(x.done?' done':'')+'" style="--rail:'+(x.done?'var(--mute)':rail(days(x.at)))+'" data-i="'+x.i+'" data-id="'+esc(x.id)+'"><div class="row"><span class="st">'+esc(st.name)+'</span><span class="age">#'+esc(x.id)+'</span></div>'+
+ '<div class="when">Создана '+fmt(x.at)+(x.done?'':' · '+ago(x.at)+' назад')+'</div>'+(x.label?'<div class="lab" dir="ltr">'+esc(x.label)+'</div>':'')+'<div class="txt" dir="auto">'+esc(x.text)+'</div>'+
+ '<div class="chips">'+[['Call',x.call],['ASR',x.asr],['SC',x.sc]].filter(a=>a[1]).map(a=>'<span class="chip">'+a[0]+' '+esc(a[1].replace(/\n/g,', '))+'</span>').join('')+
+ x.ph.map(p=>'<a class="chip" href="'+esc(p.u)+'" target="_blank" rel="noopener">'+esc(p.t||'Фото')+'</a>').join('')+'</div>'+
+ (x.done?'<div class="by">Закрыта'+(x.by?': '+esc(x.by):'')+(x.ct?' · '+fmt(x.ct):'')+'</div>':'')+
+ '<div class="acts"><a class="btn" href="'+esc(x.url)+'" target="_blank" rel="noopener">Открыть в таблице</a><button class="btn'+(x.done?'':' pri')+'" data-act="'+(x.done?'reopen':'done')+'">'+(x.done?'Открыть снова':'Закрыть крию')+'</button></div></div>'}
+function render(){const o=$('#out');if(!D){o.innerHTML='<div class="err">'+esc(err||'Загрузка…')+'</div>';return}
+ const q=$('#q').value.trim().toLowerCase(),st=D.stations;$('#clr').hidden=pick===null;let h=err?'<div class="err">'+esc(err)+'</div>':'';
+ const hit=x=>!q||(st[x.i].name+' '+x.label+' '+x.text+' '+x.call+' '+x.asr+' '+x.sc+' '+(x.by||'')).toLowerCase().includes(q);
+ if(tab==='st')h+='<div class="grid">'+st.map(s=>'<div class="s'+(s.open?'':' z')+'"><button class="sb" data-i="'+s.i+'"><b style="color:'+(s.open?'var(--old)':'var(--mute)')+'">'+s.open+'</b><span>'+esc(s.name)+'</span></button><button class="cam" data-new="'+s.i+'" aria-label="Новая крия: '+esc(s.name)+'">📷</button></div>').join('')+'</div>';
+ else{const done=tab==='closed',items=D.items.filter(x=>x.done===done&&(pick===null||x.i===pick)&&hit(x));
+  if(pick!==null)h+='<button class="btn pri" data-new="'+pick+'" style="width:100%;margin-bottom:10px">📷 Новая крия: '+esc(st[pick].name)+'</button>';
+  h+='<div class="summary"><b>'+items.length+'</b><span>'+(done?'закрытых (последние по станциям)':'открытых')+(pick!==null?' · '+esc(st[pick].name):'')+'</span></div>';
+  if(!done&&q){const n=D.items.filter(x=>x.done&&hit(x)).length;if(n)h+='<div class="hint" data-go="closed">Уже было в закрытых: '+n+' · показать</div>'}
+  h+=items.length?items.map(card).join(''):'<div class="empty">'+(done?'Закрытых по этому фильтру нет.':'Открытых крий по этому фильтру нет.')+'</div>'}
+ o.innerHTML=h}
+$('#out').onclick=async e=>{const b=e.target.closest('[data-act]');
+ if(b){const c=b.closest('.card'),act=b.dataset.act;if(!confirm(act==='done'?'Закрыть крию #'+c.dataset.id+'?':'Открыть крию #'+c.dataset.id+' снова?'))return;
+  if(!TG&&!L.getItem('tr_n'))L.setItem('tr_n',prompt('Ваше имя (будет записано, кто закрыл)')||'Web');
+  b.disabled=true;try{await call(act,'&i='+c.dataset.i+'&id='+encodeURIComponent(c.dataset.id));toast(act==='done'?'Крия закрыта':'Крия открыта');await load()}catch(er){toast(er.message);b.disabled=false}return}
+ const g=e.target.closest('[data-go]');if(g){tab='closed';sync();render();return}
+ const nw=e.target.closest('[data-new]');if(nw){openForm(+nw.dataset.new);return}
+ const s=e.target.closest('.sb');if(s){pick=+s.dataset.i;tab='feed';sync();render();scrollTo(0,0);return}
+ const t=e.target.closest('.txt');if(t)t.parentElement.classList.toggle('open')};
 function sync(){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab))}
-$('#q').oninput=()=>{if(tab!=='feed'){tab='feed';sync()}render()};$('#clr').onclick=()=>{pick=null;render()};
-$('#ref').onclick=load;
-$('#save').onclick=()=>{const u=$('#u').value.trim(),k=$('#k').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)||!k){alert('Проверьте адрес (должен оканчиваться на /exec) и ключ.');return}L.setItem('tr_u',u);L.setItem('tr_k',k);D=null;show()};
-$('#cfg').onclick=()=>{$('#u').value=cfg().u;$('#k').value='';$('#setup').hidden=false;$('#app').hidden=true};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;sync();render()});
+$('#q').oninput=()=>{if(tab==='st'){tab='feed';sync()}render()};$('#clr').onclick=()=>{pick=null;render()};$('#ref').onclick=()=>load(true);
+$('#save').onclick=()=>{const u=$('#u').value.trim(),k=$('#k').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)||!k){alert('Проверьте адрес (должен оканчиваться на /exec) и ключ.');return}L.setItem('tr_u',u);L.setItem('tr_k',k);L.setItem('tr_n',$('#n').value.trim()||'Web');show()};
+$('#cfg').onclick=()=>{$('#u').value=cfg().u;$('#n').value=cfg().n;$('#k').value='';$('#setup').hidden=false;$('#app').hidden=true;$('#fab').hidden=true;$('#impb').hidden=true};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cfg().u)load()});setInterval(()=>{if(!document.hidden&&cfg().u)load()},30000);
+
+let FP=[],sending=false,RID='';
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+function shrink(f,mx,q){mx=mx||1800;q=q||.78;return new Promise((ok,no)=>{const img=new Image(),u=URL.createObjectURL(f);img.onload=()=>{const k=Math.min(1,mx/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};img.onerror=()=>no(new Error('Не удалось прочитать фото'));img.src=u})}
+function drawPhotos(){$('#fp').innerHTML=FP.map((p,k)=>'<div class="ph"><img alt="Фото '+(k+1)+'" src="'+p+'"><button data-rm="'+k+'" aria-label="Убрать фото">✕</button></div>').join('')}
+function check(){$('#fsend').disabled=sending||$('#fs').value===''||$('#ft').value.trim().length<3}
+async function addFiles(files){for(const f of files){if(FP.length>=6){toast('Максимум 6 фото');break}if(!/^image\//.test(f.type))continue;try{FP.push(await shrink(f))}catch(e){toast(e.message)}}drawPhotos()}
+function openForm(i,files,text){if(!D){toast('Данные ещё не загружены');return}
+ $('#fs').innerHTML='<option value="">— выберите станцию —</option>'+D.stations.map(x=>'<option value="'+x.i+'">'+esc(x.name)+'</option>').join('');
+ const sel=i!=null?i:pick;$('#fs').value=sel!=null?String(sel):'';if(text!=null)$('#ft').value=text;FP=[];RID=uid();drawPhotos();if(files&&files.length)addFiles(files);
+ $('#sheet').hidden=false;check();setTimeout(()=>$('#ft').focus(),50)}
+$('#fab').onclick=()=>openForm();$('#fcancel').onclick=()=>{$('#sheet').hidden=true};$('#fs').onchange=$('#ft').oninput=check;
+$('#fcam').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};$('#fgal').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};
+$('#fp').onclick=e=>{const b=e.target.closest('[data-rm]');if(b){FP.splice(+b.dataset.rm,1);drawPhotos()}};
+document.addEventListener('paste',e=>{const fl=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type));if(!fl.length||$('#app').hidden)return;if(!$('#imp').hidden){if(!$('#i1').hidden)addImpFiles(fl)}else if($('#sheet').hidden)openForm(null,fl);else addFiles(fl)});
+$('#fsend').onclick=async()=>{if(sending)return;sending=true;check();$('#fsend').textContent='Отправка…';
+ try{const r=await fetch(url('create'),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({rid:RID,i:+$('#fs').value,text:$('#ft').value.trim(),photos:FP})}),t=await r.text();let j;
+  try{j=JSON.parse(t)}catch(_){throw new Error('Google-сервер не ответил. Нажмите «Создать крию» ещё раз: дубликата не будет.')}
+  if(!j.ok)throw new Error(j.error==='auth'?'Нет доступа':j.error);
+  $('#sheet').hidden=true;$('#ft').value='';FP=[];tab='feed';sync();toast('Крия #'+j.data.id+' создана',3500);await load()}
+ catch(er){toast(er.message==='Failed to fetch'?'Нет связи. Нажмите ещё раз: дубликата не будет.':er.message,5000)}
+ sending=false;$('#fsend').textContent='Создать крию';check()};
+
+let IM=null,IP=[],scanning=false,creating=false;
+const STATE={new:['🟢 новая'],returned:['🔄 вернулась'],open:['⏭ уже открыта'],dup:['⏭ повтор в списке'],unknown:['📍 выберите станцию'],chg:['✎ проверится при создании']};
+function impOpen(files,text){IP=[];IM=null;$('#it').value=text||'';$('#i1').hidden=false;$('#i2').hidden=true;$('#i3').hidden=true;drawImp();$('#imp').hidden=false;if(files&&files.length)addImpFiles(files)}
+function drawImp(){$('#ip').innerHTML=IP.map((p,k)=>'<div class="ph"><img alt="Скриншот '+(k+1)+'" src="'+p+'"><button data-irm="'+k+'" aria-label="Убрать">✕</button></div>').join('')}
+async function addImpFiles(files){for(const f of files){if(IP.length>=3){toast('Максимум 3 снимка');break}if(!/^image\//.test(f.type))continue;try{IP.push(await shrink(f,2200,.8))}catch(e){toast(e.message)}}drawImp()}
+$('#impb').onclick=()=>{if(!D){toast('Данные ещё не загружены');return}impOpen()};
+$('#toimp').onclick=()=>{const t=$('#ft').value,ph=FP.slice(0,3);$('#sheet').hidden=true;impOpen(null,t);IP=ph;drawImp()};
+$('#icam').onchange=e=>{addImpFiles([...e.target.files]);e.target.value=''};$('#igal').onchange=e=>{addImpFiles([...e.target.files]);e.target.value=''};
+$('#ip').onclick=e=>{const b=e.target.closest('[data-irm]');if(b){IP.splice(+b.dataset.irm,1);drawImp()}};
+$('#iclose').onclick=$('#idone').onclick=()=>{$('#imp').hidden=true};
+async function post(api,body){const r=await fetch(url(api),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}),t=await r.text();let j;
+ try{j=JSON.parse(t)}catch(_){throw new Error('Google-сервер не ответил. Повторите: дубликата не будет.')}
+ if(!j.ok)throw new Error(j.error==='auth'?'Нет доступа':j.error);return j.data}
+$('#iscan').onclick=async()=>{if(scanning)return;if(!IP.length&&!$('#it').value.trim()){toast('Добавьте скриншот или вставьте текст');return}
+ scanning=true;$('#iscan').disabled=true;$('#iscan').textContent='Распознаю… до минуты';
+ try{const d=await post('importscan',{text:$('#it').value.trim(),photos:IP});
+  if(!d.rows.length){toast(d.message||'Строки не найдены',5000)}
+  else{IM={rid:uid(),shots:d.shots||[],merge:{},rows:d.rows.map(r=>({...r,tx:r.text,sel:(r.state==='new'||r.state==='returned')&&!r.sys&&r.i!=null}))};$('#i1').hidden=true;$('#i2').hidden=false;impRender()}}
+ catch(e){toast(e.message==='Failed to fetch'?'Нет связи. Повторите.':e.message,6000)}
+ scanning=false;$('#iscan').disabled=false;$('#iscan').textContent='Распознать'};
+function impRender(){const st=D.stations,by={};IM.rows.forEach(r=>{const k=r.i==null?'x':r.i;(by[k]=by[k]||[]).push(r)});
+ const keys=Object.keys(by).sort((a,b)=>a==='x'?-1:b==='x'?1:a-b),sel=IM.rows.filter(r=>r.sel&&r.i!=null).length;
+ $('#isum').textContent='Найдено строк: '+IM.rows.length+' · выбрано: '+sel+'. Уберите галочки с ненужных, поправьте станцию или текст, затем «Создать».';
+ const opts=cur=>'<option value="">— станция —</option>'+st.map(s=>'<option value="'+s.i+'"'+(cur===s.i?' selected':'')+'>'+esc(s.name)+'</option>').join('');
+ $('#ilist').innerHTML=keys.map(k=>{const rows=by[k],all=rows.every(r=>r.sel);
+  return '<div class="ig"><div class="igh"><label><input type="checkbox" data-gsel="'+k+'"'+(all?' checked':'')+'><b>'+(k==='x'?'Станция не определена':esc(st[k].name))+'</b> · '+rows.length+'</label>'+
+  (k!=='x'&&rows.length>1?'<label class="mg"><input type="checkbox" data-gmerge="'+k+'"'+(IM.merge[k]?' checked':'')+'> одна крия на станцию</label>':'')+'</div>'+
+  rows.map(r=>'<div class="ir'+(r.sel?'':' off')+'"><input type="checkbox" data-sel="'+r.n+'"'+(r.sel?' checked':'')+' aria-label="Включить '+esc(r.label)+'"><div class="ib"><div class="il"><b dir="ltr">'+esc(r.label||r.address||'—')+'</b><span class="bd">'+esc((r.sys?'⚙ общая точка node':(STATE[r.state]||[''])[0])+(r.state==='open'&&r.ref?' #'+r.ref:''))+'</span><select data-st="'+r.n+'" aria-label="Станция">'+opts(r.i)+'</select></div><textarea class="itx" data-tx="'+r.n+'" dir="auto" rows="2">'+esc(r.tx)+'</textarea></div></div>').join('')+'</div>'}).join('');
+ $('#icreate').disabled=creating||!sel;$('#icreate').textContent='Создать ('+sel+')'}
+$('#ilist').onchange=e=>{const t=e.target,row=n=>IM.rows.find(r=>r.n===+n);
+ if(t.dataset.tx!==undefined)return;
+ if(t.dataset.sel!==undefined){row(t.dataset.sel).sel=t.checked}
+ else if(t.dataset.gsel!==undefined){IM.rows.filter(r=>String(r.i==null?'x':r.i)===t.dataset.gsel&&r.i!=null).forEach(r=>r.sel=t.checked)}
+ else if(t.dataset.gmerge!==undefined){IM.merge[t.dataset.gmerge]=t.checked}
+ else if(t.dataset.st!==undefined){const r=row(t.dataset.st);r.i=t.value===''?null:+t.value;r.state=r.i==null?'unknown':'chg';r.ref='';r.sel=r.i!=null}
+ impRender()};
+$('#ilist').oninput=e=>{const t=e.target;if(t.dataset.tx!==undefined)IM.rows.find(r=>r.n===+t.dataset.tx).tx=t.value};
+$('#iall').onclick=()=>{IM.rows.forEach(r=>r.sel=r.i!=null);impRender()};$('#inone').onclick=()=>{IM.rows.forEach(r=>r.sel=false);impRender()};
+$('#inew').onclick=()=>{IM.rows.forEach(r=>r.sel=(r.state==='new'||r.state==='returned')&&!r.sys&&r.i!=null);impRender()};
+$('#iback').onclick=()=>{$('#i2').hidden=true;$('#i1').hidden=false};
+$('#icreate').onclick=async()=>{if(creating)return;const g={};IM.rows.filter(r=>r.sel&&r.i!=null).forEach(r=>{(g[r.i]=g[r.i]||{i:r.i,merge:!!IM.merge[r.i],rows:[]}).rows.push({node:r.node,address:r.address,event:r.event,detail:r.detail,status:r.status,date:r.date,time:r.time,text:r.tx,force:r.state==='open'||r.state==='dup'})});
+ const groups=Object.values(g);if(!groups.length)return;creating=true;$('#icreate').disabled=true;$('#icreate').textContent='Создаю…';
+ try{const d=await post('importcreate',{rid:IM.rid,shots:IM.shots,groups});
+  $('#i2').hidden=true;$('#i3').hidden=false;
+  $('#ires').innerHTML='<p><b>Создано крий: '+d.created.length+'</b>'+(d.skipped.length?' · пропущено уже открытых: '+d.skipped.length:'')+'</p>'+
+   (d.created.length?'<ul>'+d.created.map(c=>'<li>#'+esc(c.id)+' · '+esc(D.stations[c.i].name)+' · '+esc(c.label)+'</li>').join('')+'</ul>':'')+
+   (d.skipped.length?'<p class="note">Пропущены (уже открыты): '+d.skipped.map(s=>esc(s.label)+' #'+esc(s.ref)).join(', ')+'</p>':'')+
+   '<p class="note">'+(d.notified.length?'Сообщение отправлено в группы Telegram: '+d.notified.map(esc).join(', ')+'.':'Группы Telegram для этих станций не привязаны, сообщения не отправлялись.')+'</p>';
+  IM=null;tab='feed';sync();await load()}
+ catch(er){toast(er.message==='Failed to fetch'?'Нет связи. Нажмите ещё раз: дубликата не будет.':er.message,6000)}
+ creating=false;if(IM)impRender()};
+function whenReady(f){if(D)f();else{const t=setInterval(()=>{if(D){clearInterval(t);f()}},300)}}
+(async()=>{const q=new URLSearchParams(location.search);
+ if(q.get('share')){try{const c=await caches.open('trouble-share'),files=[];let text='';for(const k of await c.keys()){const r=await c.match(k);if(k.url.endsWith('/shared-text'))text=(await r.json()).text||'';else{const b=await r.blob();files.push(new File([b],'shared.jpg',{type:b.type||'image/jpeg'}))}await c.delete(k)}history.replaceState(null,'',location.pathname);whenReady(()=>openForm(null,files,text))}catch(_){}}
+ else if(q.get('new')){history.replaceState(null,'',location.pathname);whenReady(()=>openForm(null))}})();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');show();
 </script></body></html>
