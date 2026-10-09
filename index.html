@@ -41,6 +41,14 @@ select,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(-
 .stick{position:sticky;bottom:-16px;background:var(--bg);padding:10px 0 4px;display:flex;gap:8px;flex-wrap:wrap}.stick .btn{flex:1;min-width:120px;text-align:center}
 .tools{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.tools .btn{padding:6px 10px;font-size:14px}
 .btn[disabled],button:disabled{opacity:.5}.note{color:var(--mute);font-size:13px;margin:6px 0}
+mark{background:#FFD54A;color:#12232B;border-radius:3px;padding:0 1px}
+.card.done{filter:grayscale(.55)}.sep{margin:14px 2px 8px;color:var(--mute);font-weight:600;font-size:13px;border-top:1px dashed var(--line);padding-top:10px}
+.rl{margin-top:6px;padding:6px 8px;border-radius:6px;background:var(--chip);font-size:13px;color:var(--ink);word-break:break-word}
+#top{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:3;width:44px;height:44px;border-radius:50%;padding:0;background:var(--card);color:var(--teal);border:1px solid var(--line);box-shadow:0 3px 10px rgba(0,0,0,.25);font-size:20px;line-height:44px;text-align:center}#top[hidden]{display:none}
+#sug{position:relative}#sug .box{position:absolute;left:0;right:0;top:-4px;z-index:4;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.2);overflow:hidden}
+#sug .it{padding:9px 12px;border-top:1px solid var(--line);cursor:pointer;display:flex;justify-content:space-between;gap:8px}#sug .it:first-child{border-top:0}#sug .it span{color:var(--mute);font-size:13px}
+#cam{position:fixed;inset:0;z-index:9;background:#000;display:flex;flex-direction:column}#cam[hidden]{display:none}#cam video{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}
+#cam .acts{padding:12px 16px calc(12px + env(safe-area-inset-bottom));margin:0}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#12232B;color:#fff;padding:10px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:5;max-width:90vw;text-align:center}#toast.on{opacity:.95}
 #setup{max-width:460px;margin:8vh auto;padding:16px}#setup label{display:block;margin:12px 0 4px}#setup button{margin-top:16px;background:var(--teal);color:#fff;width:100%}
 </style></head><body>
@@ -52,12 +60,12 @@ select,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(-
 <main id="app" hidden>
  <div class="tabs"><button data-t="feed" class="on">Открытые</button><button data-t="closed">Закрытые</button><button data-t="st">Станции</button></div>
  <div class="bar"><input id="q" type="search" placeholder="Поиск: станция, адрес M1-72, номер, текст"><button id="clr" hidden>Все станции</button></div>
- <div id="out"></div></main><button id="fab" class="fab" hidden>📷 Новая крия</button>
+ <div id="sug"></div><div id="out"></div></main><button id="fab" class="fab" hidden>📷 Новая крия</button>
 <div id="sheet" hidden><div class="sh" role="dialog" aria-label="Новая крия"><h2>Новая крия</h2>
  <label class="l" for="fs">Станция</label><select id="fs"></select>
  <label class="l" for="ft">Описание проблемы <span class="req">*</span></label><textarea id="ft" dir="auto" placeholder="Что случилось, где (комната, адрес M1-72), Call ID…"></textarea>
  <div class="photos" id="fp"></div>
- <div class="acts"><label class="btn" for="fcam">📷 Снять</label><label class="btn" for="fgal">🖼 Из галереи</label></div>
+ <div class="acts"><button class="btn" data-cam="f" type="button">📷 Снять</button><label class="btn" for="fgal">🖼 Из галереи</label></div>
  <input id="fcam" type="file" accept="image/*" capture="environment" hidden><input id="fgal" type="file" accept="image/*" multiple hidden>
  <div class="note">Фото до 6 штук. На компьютере можно вставить скриншот через Ctrl+V.</div>
  <div class="acts"><button id="toimp" class="btn">📋 Это список со многих станций</button></div>
@@ -65,15 +73,15 @@ select,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(-
 <div id="imp" hidden><div class="sh big" role="dialog" aria-label="Импорт списка крий">
  <div id="i1"><h2>Импорт списка</h2><div class="note">Скриншот списка Simplex (до 3 штук) или текст. Станция определяется по номеру node: 20 → TTR 25, 85 → TTR 16 Elifelet и т. д.</div>
   <textarea id="it" dir="auto" placeholder="Или вставьте скопированный текст списка…"></textarea><div class="photos" id="ip"></div>
-  <div class="acts"><label class="btn" for="icam">📷 Снять</label><label class="btn" for="igal">🖼 Из галереи</label></div>
+  <div class="acts"><button class="btn" data-cam="i" type="button">📷 Снять</button><label class="btn" for="igal">🖼 Из галереи</label></div>
   <input id="icam" type="file" accept="image/*" capture="environment" hidden><input id="igal" type="file" accept="image/*" multiple hidden>
   <div class="note">На компьютере скриншот можно вставить через Ctrl+V.</div>
-  <div class="acts"><button id="iclose" class="btn">Закрыть</button><button id="iscan" class="btn pri">Распознать</button></div></div>
+  <div class="err" id="ierr" hidden style="text-align:start;padding:8px 0"></div><div class="acts"><button id="iclose" class="btn">Закрыть</button><button id="iscan" class="btn pri">Распознать</button></div></div>
  <div id="i2" hidden><h2>Проверьте список</h2><div class="note" id="isum"></div>
   <div class="tools"><button class="btn" id="iall">Выбрать все</button><button class="btn" id="inone">Снять все</button><button class="btn" id="inew">Только новые</button></div>
   <div id="ilist"></div><div class="stick"><button id="iback" class="btn">Назад</button><button id="icreate" class="btn pri" disabled>Создать</button></div></div>
  <div id="i3" hidden><h2>Готово</h2><div id="ires"></div><div class="acts"><button id="idone" class="btn pri">Закрыть</button></div></div></div></div>
-<div id="toast"></div>
+<div id="cam" hidden><video id="cv" playsinline autoplay muted></video><div class="acts"><button id="cx" class="btn" type="button">Отмена</button><button id="cs" class="btn pri" type="button">📸 Снять</button></div></div><button id="top" hidden aria-label="Наверх" title="Наверх">↑</button><div id="toast"></div>
 <script>
 const $=s=>document.querySelector(s),L=localStorage;let D=null,tab='feed',pick=null,busy=false,err='';
 const hp=new URLSearchParams(location.hash.slice(1)),TG=hp.get('tgWebAppData')||'',X=new URLSearchParams(location.search).get('x');
@@ -94,37 +102,58 @@ async function call(api,extra){let last;for(let n=0;n<3;n++){try{const r=await f
  if(!j.ok)throw new Error(j.error==='auth'?(TG?'Нет доступа: ваш Telegram ID не добавлен в WEB_USER_IDS или INTAKE_USER_IDS.':'Неверный ключ. Проверьте WEB_KEY.'):j.error);return j.data}
  catch(e){last=e;if(/^(Неверный|Нет доступа)/.test(e.message))break;await new Promise(r=>setTimeout(r,1500))}}
  throw last.message==='Failed to fetch'?new Error('Нет связи. Показаны сохранённые данные.'):last}
-async function load(manual){if(busy)return;busy=true;
+let again=false;
+async function load(manual){if(busy){again=true;return}busy=true;
  try{D=await call('state');L.setItem('tr_cache',JSON.stringify(D));err='';$('#upd').textContent=hhmm();if(manual){scrollTo({top:0,behavior:'smooth'});toast('Обновлено '+hhmm())}}
- catch(e){err=e.message;if(manual)toast('Не удалось обновить')}busy=false;render()}
+ catch(e){err=e.message;if(manual)toast('Не удалось обновить')}busy=false;render();if(again){again=false;load()}}
+async function loadNow(){while(busy)await new Promise(r=>setTimeout(r,150));return load()}
+let HR=null;const SEP='[\\s\\-_.:/,]*',normq=t=>String(t).toLowerCase().replace(/[\s\-_.:\/,\\()]+/g,'');
+function mkHR(q){const n=normq(q).slice(0,40);HR=n?new RegExp(n.split('').map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join(SEP),'gi'):null}
+function hl(t){t=String(t==null?'':t);if(!HR)return esc(t);let o='',p=0,m;HR.lastIndex=0;while((m=HR.exec(t))&&m[0]){o+=esc(t.slice(p,m.index))+'<mark>'+esc(m[0])+'</mark>';p=m.index+m[0].length}return o+esc(t.slice(p))}
 function card(x){const st=D.stations[x.i];
- return '<div class="card'+(x.done?' done':'')+'" style="--rail:'+(x.done?'var(--mute)':rail(days(x.at)))+'" data-i="'+x.i+'" data-id="'+esc(x.id)+'"><div class="row"><span class="st">'+esc(st.name)+'</span><span class="age">#'+esc(x.id)+'</span></div>'+
- '<div class="when">Создана '+fmt(x.at)+(x.done?'':' · '+ago(x.at)+' назад')+'</div>'+(x.label?'<div class="lab" dir="ltr">'+esc(x.label)+'</div>':'')+'<div class="txt" dir="auto">'+esc(x.text)+'</div>'+
- '<div class="chips">'+[['Call',x.call],['ASR',x.asr],['SC',x.sc]].filter(a=>a[1]).map(a=>'<span class="chip">'+a[0]+' '+esc(a[1].replace(/\n/g,', '))+'</span>').join('')+
+ return '<div class="card'+(x.done?' done':'')+'" style="--rail:'+(x.done?'var(--mute)':rail(days(x.at)))+'" data-i="'+x.i+'" data-id="'+esc(x.id)+'"><div class="row"><span class="st">'+hl(st.name)+'</span><span class="age">#'+esc(x.id)+'</span></div>'+
+ '<div class="when">Создана '+fmt(x.at)+(x.done?'':' · '+ago(x.at)+' назад')+'</div>'+(x.label?'<div class="lab" dir="ltr">'+hl(x.label)+'</div>':'')+'<div class="txt" dir="auto">'+hl(x.text)+'</div>'+
+ '<div class="chips">'+[['Call',x.call],['ASR',x.asr],['SC',x.sc]].filter(a=>a[1]).map(a=>'<span class="chip">'+a[0]+' '+hl(a[1].replace(/\n/g,', '))+'</span>').join('')+
  x.ph.map(p=>'<a class="chip" href="'+esc(p.u)+'" target="_blank" rel="noopener">'+esc(p.t||'Фото')+'</a>').join('')+'</div>'+
- (x.done?'<div class="by">Закрыта'+(x.by?': '+esc(x.by):'')+(x.ct?' · '+fmt(x.ct):'')+'</div>':'')+
+ (x.rl&&!x.done?'<div class="rl">🔄 '+esc(x.rl)+'</div>':'')+(x.done?'<div class="by">Закрыта'+(x.by?': '+esc(x.by):'')+(x.ct?' · '+fmt(x.ct):'')+'</div>':'')+
  '<div class="acts"><a class="btn" href="'+esc(x.url)+'" target="_blank" rel="noopener">Открыть в таблице</a><button class="btn'+(x.done?'':' pri')+'" data-act="'+(x.done?'reopen':'done')+'">'+(x.done?'Открыть снова':'Закрыть крию')+'</button></div></div>'}
 function render(){const o=$('#out');if(!D){o.innerHTML='<div class="err">'+esc(err||'Загрузка…')+'</div>';return}
- const q=$('#q').value.trim().toLowerCase(),st=D.stations;$('#clr').hidden=pick===null;let h=err?'<div class="err">'+esc(err)+'</div>':'';
- const hit=x=>!q||(st[x.i].name+' '+x.label+' '+x.text+' '+x.call+' '+x.asr+' '+x.sc+' '+(x.by||'')).toLowerCase().includes(q);
- if(tab==='st')h+='<div class="grid">'+st.map(s=>'<div class="s'+(s.open?'':' z')+'"><button class="sb" data-i="'+s.i+'"><b style="color:'+(s.open?'var(--old)':'var(--mute)')+'">'+s.open+'</b><span>'+esc(s.name)+'</span></button><button class="cam" data-new="'+s.i+'" aria-label="Новая крия: '+esc(s.name)+'">📷</button></div>').join('')+'</div>';
- else{const done=tab==='closed',items=D.items.filter(x=>x.done===done&&(pick===null||x.i===pick)&&hit(x));
+ const qr=$('#q').value.trim(),q=normq(qr),st=D.stations;mkHR(qr);$('#clr').hidden=pick===null;let h=err?'<div class="err">'+esc(err)+'</div>':'';
+ const hit=x=>!q||normq(st[x.i].name+'|'+x.label+'|'+x.text+'|'+x.call+'|'+x.asr+'|'+x.sc+'|'+(x.by||'')+'|#'+x.id).includes(q);
+ const byClosed=(a,b)=>(b.ct||0)-(a.ct||0)||b.at-a.at;
+ if(tab==='st')h+='<div class="grid">'+st.map(s=>'<div class="s'+(s.open?'':' z')+'"><button class="sb" data-i="'+s.i+'"><b style="color:'+(s.open?'var(--old)':'var(--mute)')+'">'+s.open+'</b><span>'+hl(s.name)+'</span></button><button class="cam" data-new="'+s.i+'" aria-label="Новая крия: '+esc(s.name)+'">📷</button></div>').join('')+'</div>';
+ else{const done=tab==='closed',pk=x=>pick===null||x.i===pick,items=D.items.filter(x=>x.done===done&&pk(x)&&hit(x)).sort(done?byClosed:(a,b)=>b.at-a.at),
+   extra=!done&&(pick!==null||q)?D.items.filter(x=>x.done&&pk(x)&&hit(x)).sort(byClosed):[];
   if(pick!==null)h+='<button class="btn pri" data-new="'+pick+'" style="width:100%;margin-bottom:10px">📷 Новая крия: '+esc(st[pick].name)+'</button>';
   h+='<div class="summary"><b>'+items.length+'</b><span>'+(done?'закрытых (последние по станциям)':'открытых')+(pick!==null?' · '+esc(st[pick].name):'')+'</span></div>';
-  if(!done&&q){const n=D.items.filter(x=>x.done&&hit(x)).length;if(n)h+='<div class="hint" data-go="closed">Уже было в закрытых: '+n+' · показать</div>'}
-  h+=items.length?items.map(card).join(''):'<div class="empty">'+(done?'Закрытых по этому фильтру нет.':'Открытых крий по этому фильтру нет.')+'</div>'}
- o.innerHTML=h}
+  h+=items.length?items.map(card).join(''):(extra.length?'<div class="note" style="text-align:center">Открытых нет.</div>':'<div class="empty">'+(done?'Закрытых по этому фильтру нет.':'Открытых крий по этому фильтру нет.')+'</div>');
+  if(extra.length)h+='<div class="sep">Закрытые · '+extra.length+'</div>'+extra.map(card).join('')}
+ o.innerHTML=h;sugg()}
+function sugg(){const b=$('#sug'),qr=$('#q').value.trim(),q=normq(qr);if(!D||!q||document.activeElement!==$('#q')){b.innerHTML='';return}
+ const st=D.stations.filter(s=>normq(s.name).includes(q)).slice(0,6),seen={},lb=[];
+ D.items.forEach(x=>{x.label.split(', ').forEach(l=>{const k=normq(l);if(l&&k.includes(q)&&!seen[k+x.i]&&lb.length<6){seen[k+x.i]=1;lb.push([l,x.i])}})});
+ const rows=st.map(s=>'<div class="it" data-s="'+s.i+'"><div>🚉 '+hl(s.name)+'</div><span>открытых: '+s.open+'</span></div>').concat(lb.map(a=>'<div class="it" data-l="'+esc(a[0])+'"><div>🔎 '+hl(a[0])+'</div><span>'+esc(D.stations[a[1]].name)+'</span></div>'));
+ b.innerHTML=rows.length?'<div class="box">'+rows.join('')+'</div>':''}
+$('#sug').onpointerdown=e=>{const it=e.target.closest('.it');if(!it)return;e.preventDefault();
+ if(it.dataset.s!==undefined){pick=+it.dataset.s;tab='feed';$('#q').value='';sync()}else{$('#q').value=it.dataset.l}
+ $('#sug').innerHTML='';render();scrollTo(0,0)};
+$('#q').onfocus=sugg;$('#q').onblur=()=>setTimeout(()=>{$('#sug').innerHTML=''},150);
 $('#out').onclick=async e=>{const b=e.target.closest('[data-act]');
  if(b){const c=b.closest('.card'),act=b.dataset.act;if(!confirm(act==='done'?'Закрыть крию #'+c.dataset.id+'?':'Открыть крию #'+c.dataset.id+' снова?'))return;
   if(!TG&&!L.getItem('tr_n'))L.setItem('tr_n',prompt('Ваше имя (будет записано, кто закрыл)')||'Web');
-  b.disabled=true;try{await call(act,'&i='+c.dataset.i+'&id='+encodeURIComponent(c.dataset.id));toast(act==='done'?'Крия закрыта':'Крия открыта');await load()}catch(er){toast(er.message);b.disabled=false}return}
+  b.disabled=true;try{await call(act,'&i='+c.dataset.i+'&id='+encodeURIComponent(c.dataset.id));
+   const x=D.items.find(z=>z.i===+c.dataset.i&&String(z.id)===c.dataset.id),sn=D.stations[+c.dataset.i],me=TG?'':(cfg().n||'');
+   if(x){const was=x.ct;if(act==='done'){x.done=true;x.ct=Date.now();x.by=me;x.rl='';sn.open=Math.max(0,sn.open-1)}else{x.done=false;x.rl=fmt(Date.now())+' — Открыто снова'+(me?' ('+me+')':'')+(was?': ранее закрыта '+fmt(was):'');x.ct=0;x.by='';sn.open++}render()}
+   toast(act==='done'?'Крия закрыта':'Крия открыта снова');await loadNow()}catch(er){toast(er.message);b.disabled=false}return}
  const g=e.target.closest('[data-go]');if(g){tab='closed';sync();render();return}
  const nw=e.target.closest('[data-new]');if(nw){openForm(+nw.dataset.new);return}
  const s=e.target.closest('.sb');if(s){pick=+s.dataset.i;tab='feed';sync();render();scrollTo(0,0);return}
  const t=e.target.closest('.txt');if(t)t.parentElement.classList.toggle('open')};
 function sync(){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab))}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;sync();render()});
-$('#q').oninput=()=>{if(tab==='st'){tab='feed';sync()}render()};$('#clr').onclick=()=>{pick=null;render()};$('#ref').onclick=()=>load(true);
+$('#q').oninput=()=>{if(tab==='st'){tab='feed';sync()}render()};
+const TOP=$('#top');addEventListener('scroll',()=>{TOP.hidden=scrollY<400||$('#app').hidden},{passive:true});TOP.onclick=()=>scrollTo({top:0,behavior:'smooth'});
+$('#clr').onclick=()=>{pick=null;render()};$('#ref').onclick=()=>load(true);
 $('#save').onclick=()=>{const u=$('#u').value.trim(),k=$('#k').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)||!k){alert('Проверьте адрес (должен оканчиваться на /exec) и ключ.');return}L.setItem('tr_u',u);L.setItem('tr_k',k);L.setItem('tr_n',$('#n').value.trim()||'Web');show()};
 $('#cfg').onclick=()=>{$('#u').value=cfg().u;$('#n').value=cfg().n;$('#k').value='';$('#setup').hidden=false;$('#app').hidden=true;$('#fab').hidden=true;$('#impb').hidden=true};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cfg().u)load()});setInterval(()=>{if(!document.hidden&&cfg().u)load()},30000);
@@ -140,6 +169,13 @@ function openForm(i,files,text){if(!D){toast('Данные ещё не загр�
  const sel=i!=null?i:pick;$('#fs').value=sel!=null?String(sel):'';if(text!=null)$('#ft').value=text;FP=[];RID=uid();drawPhotos();if(files&&files.length)addFiles(files);
  $('#sheet').hidden=false;check();setTimeout(()=>$('#ft').focus(),50)}
 $('#fab').onclick=()=>openForm();$('#fcancel').onclick=()=>{$('#sheet').hidden=true};$('#fs').onchange=$('#ft').oninput=check;
+let CS=null,CB=null;
+async function openCam(cb,fb){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$(fb).click();return}
+ try{CS=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false});$('#cv').srcObject=CS;$('#cam').hidden=false;CB=cb}catch(e){CS=null;$(fb).click()}}
+function closeCam(){if(CS)CS.getTracks().forEach(t=>t.stop());CS=null;$('#cam').hidden=true;$('#cv').srcObject=null}
+$('#cx').onclick=closeCam;
+$('#cs').onclick=()=>{const v=$('#cv');if(!v.videoWidth){toast('Камера ещё не готова');return}const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.toBlob(b=>{const f=new File([b],'cam.jpg',{type:'image/jpeg'}),cb=CB;closeCam();if(cb)cb([f])},'image/jpeg',.9)};
+document.querySelector('[data-cam=f]').onclick=()=>openCam(addFiles,'#fcam');document.querySelector('[data-cam=i]').onclick=()=>openCam(addImpFiles,'#icam');
 $('#fcam').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};$('#fgal').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};
 $('#fp').onclick=e=>{const b=e.target.closest('[data-rm]');if(b){FP.splice(+b.dataset.rm,1);drawPhotos()}};
 document.addEventListener('paste',e=>{const fl=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type));if(!fl.length||$('#app').hidden)return;if(!$('#imp').hidden){if(!$('#i1').hidden)addImpFiles(fl)}else if($('#sheet').hidden)openForm(null,fl);else addFiles(fl)});
@@ -165,11 +201,11 @@ async function post(api,body){const r=await fetch(url(api),{method:'POST',header
  try{j=JSON.parse(t)}catch(_){throw new Error('Google-сервер не ответил. Повторите: дубликата не будет.')}
  if(!j.ok)throw new Error(j.error==='auth'?'Нет доступа':j.error);return j.data}
 $('#iscan').onclick=async()=>{if(scanning)return;if(!IP.length&&!$('#it').value.trim()){toast('Добавьте скриншот или вставьте текст');return}
- scanning=true;$('#iscan').disabled=true;$('#iscan').textContent='Распознаю… до минуты';
+ $('#ierr').hidden=true;scanning=true;$('#iscan').disabled=true;$('#iscan').textContent='Распознаю… до минуты';
  try{const d=await post('importscan',{text:$('#it').value.trim(),photos:IP});
   if(!d.rows.length){toast(d.message||'Строки не найдены',5000)}
   else{IM={rid:uid(),shots:d.shots||[],merge:{},rows:d.rows.map(r=>({...r,tx:r.text,sel:(r.state==='new'||r.state==='returned')&&!r.sys&&r.i!=null}))};$('#i1').hidden=true;$('#i2').hidden=false;impRender()}}
- catch(e){toast(e.message==='Failed to fetch'?'Нет связи. Повторите.':e.message,6000)}
+ catch(e){const m=e.message==='Failed to fetch'?'Нет связи. Повторите.':e.message;$('#ierr').textContent=/GEMINI/i.test(m)?'Не задан ключ Gemini. Получите бесплатный ключ на aistudio.google.com/apikey и сохраните его функцией SET_GEMINI_KEY (файл WebSetup в Apps Script). Пока можно вставить текст списка — но и он читается через Gemini.':m;$('#ierr').hidden=false;toast(m,6000)}
  scanning=false;$('#iscan').disabled=false;$('#iscan').textContent='Распознать'};
 function impRender(){const st=D.stations,by={};IM.rows.forEach(r=>{const k=r.i==null?'x':r.i;(by[k]=by[k]||[]).push(r)});
  const keys=Object.keys(by).sort((a,b)=>a==='x'?-1:b==='x'?1:a-b),sel=IM.rows.filter(r=>r.sel&&r.i!=null).length;
