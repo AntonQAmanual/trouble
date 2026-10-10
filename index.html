@@ -41,6 +41,8 @@ select,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(-
 .stick{position:sticky;bottom:-16px;background:var(--bg);padding:10px 0 4px;display:flex;gap:8px;flex-wrap:wrap}.stick .btn{flex:1;min-width:120px;text-align:center}
 .tools{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.tools .btn{padding:6px 10px;font-size:14px}
 .btn[disabled],button:disabled{opacity:.5}.note{color:var(--mute);font-size:13px;margin:6px 0}
+#out .pen{margin-left:auto;padding:2px 10px;font-size:15px;border:0}.edit{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.edit textarea{min-height:140px}.eh{margin-top:8px;font-size:12.5px;color:var(--mute);white-space:pre-wrap;word-break:break-word}.eh b{color:var(--ink)}
 mark{background:#FFD54A;color:#12232B;border-radius:3px;padding:0 1px}
 .card.done{filter:grayscale(.55)}.sep{margin:14px 2px 8px;color:var(--mute);font-weight:600;font-size:13px;border-top:1px dashed var(--line);padding-top:10px}
 .rl{margin-top:6px;padding:6px 8px;border-radius:6px;background:var(--chip);font-size:13px;color:var(--ink);word-break:break-word}
@@ -66,7 +68,7 @@ mark{background:#FFD54A;color:#12232B;border-radius:3px;padding:0 1px}
  <label class="l" for="ft">Описание проблемы <span class="req">*</span></label><textarea id="ft" dir="auto" placeholder="Что случилось, где (комната, адрес M1-72), Call ID…"></textarea>
  <div class="photos" id="fp"></div>
  <div class="acts"><button class="btn" data-cam="f" type="button">📷 Снять</button><label class="btn" for="fgal">🖼 Из галереи</label></div>
- <input id="fcam" type="file" accept="image/*" capture="environment" hidden><input id="fgal" type="file" accept="image/*" multiple hidden>
+ <input id="egal" type="file" accept="image/*" multiple hidden><input id="ecam" type="file" accept="image/*" capture="environment" hidden><input id="fcam" type="file" accept="image/*" capture="environment" hidden><input id="fgal" type="file" accept="image/*" multiple hidden>
  <div class="note">Фото до 6 штук. На компьютере можно вставить скриншот через Ctrl+V.</div>
  <div class="acts"><button id="toimp" class="btn">📋 Это список со многих станций</button></div>
  <div class="acts"><button id="fcancel" class="btn">Отмена</button><button id="fsend" class="btn pri" disabled>Создать крию</button></div></div></div>
@@ -102,43 +104,67 @@ async function call(api,extra){let last;for(let n=0;n<3;n++){try{const r=await f
  if(!j.ok)throw new Error(j.error==='auth'?(TG?'Нет доступа: ваш Telegram ID не добавлен в WEB_USER_IDS или INTAKE_USER_IDS.':'Неверный ключ. Проверьте WEB_KEY.'):j.error);return j.data}
  catch(e){last=e;if(/^(Неверный|Нет доступа)/.test(e.message))break;await new Promise(r=>setTimeout(r,1500))}}
  throw last.message==='Failed to fetch'?new Error('Нет связи. Показаны сохранённые данные.'):last}
-let again=false;
+let again=false,EDIT=null;
 async function load(manual){if(busy){again=true;return}busy=true;
  try{D=await call('state');L.setItem('tr_cache',JSON.stringify(D));err='';$('#upd').textContent=hhmm();if(manual){scrollTo({top:0,behavior:'smooth'});toast('Обновлено '+hhmm())}}
- catch(e){err=e.message;if(manual)toast('Не удалось обновить')}busy=false;render();if(again){again=false;load()}}
+ catch(e){err=e.message;if(manual)toast('Не удалось обновить')}busy=false;if(!EDIT)render();if(again){again=false;load()}}
 async function loadNow(){while(busy)await new Promise(r=>setTimeout(r,150));return load()}
 let HR=null;const SEP='[\\s\\-_.:/,]*',normq=t=>String(t).toLowerCase().replace(/[\s\-_.:\/,\\()]+/g,'');
 function mkHR(q){const n=normq(q).slice(0,40);HR=n?new RegExp(n.split('').map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join(SEP),'gi'):null}
 function hl(t){t=String(t==null?'':t);if(!HR)return esc(t);let o='',p=0,m;HR.lastIndex=0;while((m=HR.exec(t))&&m[0]){o+=esc(t.slice(p,m.index))+'<mark>'+esc(m[0])+'</mark>';p=m.index+m[0].length}return o+esc(t.slice(p))}
+function editPanel(){return '<div class="edit"><label class="l" for="etx" style="font-weight:600">Текст крии</label><textarea id="etx" dir="auto"'+(EDIT.text==null?' disabled placeholder="Загрузка…"':'')+'>'+esc(EDIT.text||'')+'</textarea><div class="photos" id="eph"></div>'+
+ '<div class="acts"><button class="btn" data-cam="e" type="button">📷 Снять</button><label class="btn" for="egal">🖼 Фото / скриншот</label></div><div class="eh" id="ehist">'+ehist()+'</div>'+
+ '<div class="acts"><button class="btn" id="ecancel" type="button">Отмена</button><button class="btn pri" id="esave" type="button">Сохранить</button></div></div>'}
+function ehist(){const x=D.items.find(z=>z.i===EDIT.i&&String(z.id)===String(EDIT.id));return '<b>Кто и когда:</b>\nСоздана '+(x?fmt(x.at):'')+(x&&x.cb?' · '+esc(x.cb):'')+'\n'+(EDIT.edits&&EDIT.edits.length?EDIT.edits.map(esc).join('\n'):(EDIT.text==null?'':'Правок пока не было.'))}
+function drawEph(){const e=$('#eph');if(e&&EDIT)e.innerHTML=EDIT.photos.map((p,k)=>'<div class="ph"><img alt="Фото '+(k+1)+'" src="'+p+'"><button data-erm="'+k+'" aria-label="Убрать фото">✕</button></div>').join('')}
+async function addEditFiles(files){if(!EDIT)return;for(const f of files){if(EDIT.photos.length>=6){toast('Максимум 6 фото');break}if(!/^image\//.test(f.type))continue;try{EDIT.photos.push(await shrink(f))}catch(e){toast(e.message)}}drawEph()}
 function card(x){const st=D.stations[x.i];
  return '<div class="card'+(x.done?' done':'')+'" style="--rail:'+(x.done?'var(--mute)':rail(days(x.at)))+'" data-i="'+x.i+'" data-id="'+esc(x.id)+'"><div class="row"><span class="st">'+hl(st.name)+'</span><span class="age">#'+esc(x.id)+'</span></div>'+
- '<div class="when">Создана '+fmt(x.at)+(x.done?'':' · '+ago(x.at)+' назад')+'</div>'+(x.label?'<div class="lab" dir="ltr">'+hl(x.label)+'</div>':'')+'<div class="txt" dir="auto">'+hl(x.text)+'</div>'+
- '<div class="chips">'+[['Call',x.call],['ASR',x.asr],['SC',x.sc]].filter(a=>a[1]).map(a=>'<span class="chip">'+a[0]+' '+hl(a[1].replace(/\n/g,', '))+'</span>').join('')+
- x.ph.map(p=>'<a class="chip" href="'+esc(p.u)+'" target="_blank" rel="noopener">'+esc(p.t||'Фото')+'</a>').join('')+'</div>'+
+ '<div class="when">Создана '+fmt(x.at)+(x.cb?' · '+hl(x.cb):'')+(x.done?'':' · '+ago(x.at)+' назад')+'</div>'+(x.label?'<div class="lab" dir="ltr">'+hl(x.label)+'</div>':'')+'<div class="txt" dir="auto">'+hl(x.text)+'</div>'+
+ '<div class="chips">'+[['SC',x.sc],['',x.rlno],['ASR',x.asr],['Call',x.call]].filter(a=>a[1]).map(a=>'<span class="chip">'+(a[0]?a[0]+' ':'')+hl(a[1].replace(/\n/g,', '))+'</span>').join('')+
+ x.ph.map(p=>'<a class="chip" href="'+esc(p.u)+'" target="_blank" rel="noopener">'+esc(p.t||'Фото')+'</a>').join('')+'<button class="chip pen" data-edit="1" aria-label="Редактировать крию" title="Редактировать">✎</button></div>'+(EDIT&&EDIT.i===x.i&&String(EDIT.id)===String(x.id)?editPanel():'')+
  (x.rl&&!x.done?'<div class="rl">🔄 '+esc(x.rl)+'</div>':'')+(x.done?'<div class="by">Закрыта'+(x.by?': '+esc(x.by):'')+(x.ct?' · '+fmt(x.ct):'')+'</div>':'')+
  '<div class="acts"><a class="btn" href="'+esc(x.url)+'" target="_blank" rel="noopener">Открыть в таблице</a><button class="btn'+(x.done?'':' pri')+'" data-act="'+(x.done?'reopen':'done')+'">'+(x.done?'Открыть снова':'Закрыть крию')+'</button></div></div>'}
+let FOUND=[],FQ='',fT=null,fBusy=false;
+function allClosed(){const seen={},o=[];D.items.filter(x=>x.done).concat(FQ&&normq($('#q').value)===FQ?FOUND:[]).forEach(x=>{const k=x.i+'#'+x.id;if(!seen[k]){seen[k]=1;o.push(x)}});return o}
+function remoteSearch(){clearTimeout(fT);const q=normq($('#q').value);if(q.length<2){FOUND=[];FQ='';return}if(FQ===q)return;
+ fT=setTimeout(async()=>{if(fBusy)return;fBusy=true;try{const d=await call('search','&q='+encodeURIComponent($('#q').value.trim()));if(normq($('#q').value)===q){FOUND=d.items||[];FQ=q;if(d.more)toast('Найдено больше 100 закрытых — уточните запрос',4000);render()}}catch(_){}fBusy=false;if(normq($('#q').value)!==FQ&&normq($('#q').value).length>=2)remoteSearch()},600)}
 function render(){const o=$('#out');if(!D){o.innerHTML='<div class="err">'+esc(err||'Загрузка…')+'</div>';return}
  const qr=$('#q').value.trim(),q=normq(qr),st=D.stations;mkHR(qr);$('#clr').hidden=pick===null;let h=err?'<div class="err">'+esc(err)+'</div>':'';
- const hit=x=>!q||normq(st[x.i].name+'|'+x.label+'|'+x.text+'|'+x.call+'|'+x.asr+'|'+x.sc+'|'+(x.by||'')+'|#'+x.id).includes(q);
+ const hit=x=>!q||normq(st[x.i].name+'|'+(st[x.i].he||'')+'|'+x.label+'|'+x.text+'|'+x.call+'|'+x.asr+'|'+x.sc+'|'+(x.by||'')+'|'+(x.rlno||'')+'|'+(x.cb||'')+'|#'+x.id).includes(q);
  const byClosed=(a,b)=>(b.ct||0)-(a.ct||0)||b.at-a.at;
  if(tab==='st')h+='<div class="grid">'+st.map(s=>'<div class="s'+(s.open?'':' z')+'"><button class="sb" data-i="'+s.i+'"><b style="color:'+(s.open?'var(--old)':'var(--mute)')+'">'+s.open+'</b><span>'+hl(s.name)+'</span></button><button class="cam" data-new="'+s.i+'" aria-label="Новая крия: '+esc(s.name)+'">📷</button></div>').join('')+'</div>';
- else{const done=tab==='closed',pk=x=>pick===null||x.i===pick,items=D.items.filter(x=>x.done===done&&pk(x)&&hit(x)).sort(done?byClosed:(a,b)=>b.at-a.at),
-   extra=!done&&(pick!==null||q)?D.items.filter(x=>x.done&&pk(x)&&hit(x)).sort(byClosed):[];
+ else{const done=tab==='closed',pk=x=>pick===null||x.i===pick,items=(done?allClosed():D.items.filter(x=>!x.done)).filter(x=>pk(x)&&hit(x)).sort(done?byClosed:(a,b)=>b.at-a.at),
+   extra=!done&&(pick!==null||q)?allClosed().filter(x=>pk(x)&&hit(x)).sort(byClosed):[];
   if(pick!==null)h+='<button class="btn pri" data-new="'+pick+'" style="width:100%;margin-bottom:10px">📷 Новая крия: '+esc(st[pick].name)+'</button>';
   h+='<div class="summary"><b>'+items.length+'</b><span>'+(done?'закрытых (последние по станциям)':'открытых')+(pick!==null?' · '+esc(st[pick].name):'')+'</span></div>';
   h+=items.length?items.map(card).join(''):(extra.length?'<div class="note" style="text-align:center">Открытых нет.</div>':'<div class="empty">'+(done?'Закрытых по этому фильтру нет.':'Открытых крий по этому фильтру нет.')+'</div>');
   if(extra.length)h+='<div class="sep">Закрытые · '+extra.length+'</div>'+extra.map(card).join('')}
- o.innerHTML=h;sugg()}
+ o.innerHTML=h;sugg();drawEph()}
 function sugg(){const b=$('#sug'),qr=$('#q').value.trim(),q=normq(qr);if(!D||!q||document.activeElement!==$('#q')){b.innerHTML='';return}
- const st=D.stations.filter(s=>normq(s.name).includes(q)).slice(0,6),seen={},lb=[];
- D.items.forEach(x=>{x.label.split(', ').forEach(l=>{const k=normq(l);if(l&&k.includes(q)&&!seen[k+x.i]&&lb.length<6){seen[k+x.i]=1;lb.push([l,x.i])}})});
- const rows=st.map(s=>'<div class="it" data-s="'+s.i+'"><div>🚉 '+hl(s.name)+'</div><span>открытых: '+s.open+'</span></div>').concat(lb.map(a=>'<div class="it" data-l="'+esc(a[0])+'"><div>🔎 '+hl(a[0])+'</div><span>'+esc(D.stations[a[1]].name)+'</span></div>'));
+ const st=D.stations.filter(s=>normq(s.name+'|'+(s.he||'')).includes(q)).slice(0,6),seen={},lb=[],tx=[];
+ D.items.forEach(x=>{const nt=normq(x.text);if(tx.length<5&&nt.includes(q)&&!x.label.split(', ').some(l=>normq(l).includes(q))){const mm=HR&&(HR.lastIndex=0,HR.exec(x.text));if(mm){const a=Math.max(0,mm.index-12);const sn=(a?'…':'')+x.text.slice(a,mm.index+mm[0].length+28).replace(/\s+/g,' ');if(!seen['t'+sn]){seen['t'+sn]=1;tx.push([sn,x.i,mm[0]])}}}x.label.split(', ').forEach(l=>{const k=normq(l);if(l&&k.includes(q)&&!seen[k+x.i]&&lb.length<6){seen[k+x.i]=1;lb.push([l,x.i])}})});
+ const rows=st.map(s=>'<div class="it" data-s="'+s.i+'"><div>🚉 '+hl(s.name)+(s.he?' <span style="display:inline">'+hl(s.he)+'</span>':'')+'</div><span>открытых: '+s.open+'</span></div>').concat(tx.map(a=>'<div class="it" data-l="'+esc(a[2])+'"><div>📝 '+hl(a[0])+'</div><span>'+esc(D.stations[a[1]].name)+'</span></div>')).concat(lb.map(a=>'<div class="it" data-l="'+esc(a[0])+'"><div>🔎 '+hl(a[0])+'</div><span>'+esc(D.stations[a[1]].name)+'</span></div>'));
  b.innerHTML=rows.length?'<div class="box">'+rows.join('')+'</div>':''}
+$('#out').oninput=e=>{if(e.target.id==='etx'&&EDIT)EDIT.text=e.target.value};
 $('#sug').onpointerdown=e=>{const it=e.target.closest('.it');if(!it)return;e.preventDefault();
  if(it.dataset.s!==undefined){pick=+it.dataset.s;tab='feed';$('#q').value='';sync()}else{$('#q').value=it.dataset.l}
  $('#sug').innerHTML='';render();scrollTo(0,0)};
 $('#q').onfocus=sugg;$('#q').onblur=()=>setTimeout(()=>{$('#sug').innerHTML=''},150);
-$('#out').onclick=async e=>{const b=e.target.closest('[data-act]');
+$('#out').onclick=async e=>{
+ const pen=e.target.closest('[data-edit]');
+ if(pen){const c=pen.closest('.card'),i=+c.dataset.i,id=c.dataset.id;if(EDIT&&EDIT.i===i&&String(EDIT.id)===id){EDIT=null;render();return}
+  EDIT={i:i,id:id,text:null,photos:[],edits:[],orig:''};render();
+  try{const d=await call('get','&i='+i+'&id='+encodeURIComponent(id));if(!EDIT||String(EDIT.id)!==id)return;EDIT.text=d.text;EDIT.orig=d.text;EDIT.edits=d.edits||[];const t=$('#etx');if(t){t.disabled=false;t.value=d.text;t.placeholder=''}const h=$('#ehist');if(h)h.innerHTML=ehist()}catch(er){toast(er.message);EDIT=null;render()}return}
+ if(e.target.closest('#ecancel')){EDIT=null;render();return}
+ const er=e.target.closest('[data-erm]');if(er&&EDIT){EDIT.photos.splice(+er.dataset.erm,1);drawEph();return}
+ if(e.target.closest('[data-cam=e]')){openCam(addEditFiles,'#ecam');return}
+ if(e.target.closest('#esave')){if(!EDIT||EDIT.text==null)return;const t=$('#etx').value.trim();if(t.length<3){toast('Текст не может быть пустым');return}
+  const btn=$('#esave');btn.disabled=true;btn.textContent='Сохраняю…';
+  try{const d=await post('edit',{rid:uid(),i:EDIT.i,id:EDIT.id,text:t===EDIT.orig?null:t,photos:EDIT.photos});EDIT=null;toast(d.changed?'Изменения сохранены':'Изменений нет');await loadNow();render()}
+  catch(e2){toast(e2.message==='Failed to fetch'?'Нет связи. Нажмите ещё раз.':e2.message,5000);btn.disabled=false;btn.textContent='Сохранить'}return}
+ if(e.target.closest('.edit'))return;
+ const b=e.target.closest('[data-act]');
  if(b){const c=b.closest('.card'),act=b.dataset.act;if(!confirm(act==='done'?'Закрыть крию #'+c.dataset.id+'?':'Открыть крию #'+c.dataset.id+' снова?'))return;
   if(!TG&&!L.getItem('tr_n'))L.setItem('tr_n',prompt('Ваше имя (будет записано, кто закрыл)')||'Web');
   b.disabled=true;try{await call(act,'&i='+c.dataset.i+'&id='+encodeURIComponent(c.dataset.id));
@@ -151,9 +177,9 @@ $('#out').onclick=async e=>{const b=e.target.closest('[data-act]');
  const t=e.target.closest('.txt');if(t)t.parentElement.classList.toggle('open')};
 function sync(){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab))}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;sync();render()});
-$('#q').oninput=()=>{if(tab==='st'){tab='feed';sync()}render()};
+$('#q').oninput=()=>{if(tab==='st'){tab='feed';sync()}render();remoteSearch()};
 const TOP=$('#top');addEventListener('scroll',()=>{TOP.hidden=scrollY<400||$('#app').hidden},{passive:true});TOP.onclick=()=>scrollTo({top:0,behavior:'smooth'});
-$('#clr').onclick=()=>{pick=null;render()};$('#ref').onclick=()=>load(true);
+$('#clr').onclick=()=>{pick=null;render()};$('#ref').onclick=()=>{scrollTo({top:0,behavior:'smooth'});document.documentElement.scrollTop=0;load(true)};
 $('#save').onclick=()=>{const u=$('#u').value.trim(),k=$('#k').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u)||!k){alert('Проверьте адрес (должен оканчиваться на /exec) и ключ.');return}L.setItem('tr_u',u);L.setItem('tr_k',k);L.setItem('tr_n',$('#n').value.trim()||'Web');show()};
 $('#cfg').onclick=()=>{$('#u').value=cfg().u;$('#n').value=cfg().n;$('#k').value='';$('#setup').hidden=false;$('#app').hidden=true;$('#fab').hidden=true;$('#impb').hidden=true};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cfg().u)load()});setInterval(()=>{if(!document.hidden&&cfg().u)load()},30000);
@@ -171,19 +197,20 @@ function openForm(i,files,text){if(!D){toast('Данные ещё не загр�
 $('#fab').onclick=()=>openForm();$('#fcancel').onclick=()=>{$('#sheet').hidden=true};$('#fs').onchange=$('#ft').oninput=check;
 let CS=null,CB=null;
 async function openCam(cb,fb){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$(fb).click();return}
- try{CS=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false});$('#cv').srcObject=CS;$('#cam').hidden=false;CB=cb}catch(e){CS=null;$(fb).click()}}
+ try{CS=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false});const v=$('#cv');v.srcObject=CS;v.muted=true;$('#cam').hidden=false;CB=cb;try{await v.play()}catch(_){}setTimeout(()=>{if(CS&&!v.videoWidth){closeCam();toast('Камера не показала изображение — открываю системную');$(fb).click()}},2500)}catch(e){CS=null;$(fb).click()}}
 function closeCam(){if(CS)CS.getTracks().forEach(t=>t.stop());CS=null;$('#cam').hidden=true;$('#cv').srcObject=null}
 $('#cx').onclick=closeCam;
 $('#cs').onclick=()=>{const v=$('#cv');if(!v.videoWidth){toast('Камера ещё не готова');return}const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.toBlob(b=>{const f=new File([b],'cam.jpg',{type:'image/jpeg'}),cb=CB;closeCam();if(cb)cb([f])},'image/jpeg',.9)};
 document.querySelector('[data-cam=f]').onclick=()=>openCam(addFiles,'#fcam');document.querySelector('[data-cam=i]').onclick=()=>openCam(addImpFiles,'#icam');
+$('#egal').onchange=$('#ecam').onchange=e=>{addEditFiles([...e.target.files]);e.target.value=''};
 $('#fcam').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};$('#fgal').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};
 $('#fp').onclick=e=>{const b=e.target.closest('[data-rm]');if(b){FP.splice(+b.dataset.rm,1);drawPhotos()}};
-document.addEventListener('paste',e=>{const fl=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type));if(!fl.length||$('#app').hidden)return;if(!$('#imp').hidden){if(!$('#i1').hidden)addImpFiles(fl)}else if($('#sheet').hidden)openForm(null,fl);else addFiles(fl)});
+document.addEventListener('paste',e=>{const fl=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type));if(!fl.length||$('#app').hidden)return;if(EDIT&&document.querySelector('.edit')){addEditFiles(fl);return}if(!$('#imp').hidden){if(!$('#i1').hidden)addImpFiles(fl)}else if($('#sheet').hidden)openForm(null,fl);else addFiles(fl)});
 $('#fsend').onclick=async()=>{if(sending)return;sending=true;check();$('#fsend').textContent='Отправка…';
  try{const r=await fetch(url('create'),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({rid:RID,i:+$('#fs').value,text:$('#ft').value.trim(),photos:FP})}),t=await r.text();let j;
   try{j=JSON.parse(t)}catch(_){throw new Error('Google-сервер не ответил. Нажмите «Создать крию» ещё раз: дубликата не будет.')}
   if(!j.ok)throw new Error(j.error==='auth'?'Нет доступа':j.error);
-  $('#sheet').hidden=true;$('#ft').value='';FP=[];tab='feed';sync();toast('Крия #'+j.data.id+' создана',3500);await load()}
+  $('#sheet').hidden=true;$('#ft').value='';FP=[];tab='feed';sync();toast('Крия #'+j.data.id+' создана'+(j.data.rl?' · '+j.data.rl:''),4500);await load()}
  catch(er){toast(er.message==='Failed to fetch'?'Нет связи. Нажмите ещё раз: дубликата не будет.':er.message,5000)}
  sending=false;$('#fsend').textContent='Создать крию';check()};
 
