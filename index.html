@@ -60,7 +60,7 @@ mark{background:#FFD54A;color:#12232B;border-radius:3px;padding:0 1px}
 #cam .acts{padding:12px 16px calc(12px + env(safe-area-inset-bottom));margin:0}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#12232B;color:#fff;padding:10px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:5;max-width:90vw;text-align:center}#toast.on{opacity:.95}
 #setup{max-width:460px;margin:8vh auto;padding:16px}#setup label{display:block;margin:12px 0 4px}#setup button{margin-top:16px;background:var(--teal);color:#fff;width:100%}
-</style></head><body>
+body.tgw label[for=icam],body.tgw label[for=fcam],body.tgw label[for=ecam]{display:none}</style></head><body>
 <header><h1>Trouble RedLine <small id="upd"></small></h1><button id="impb" aria-label="Импорт списка станций" title="Импорт списка">📋 Импорт</button><button id="ref" aria-label="Обновить">Обновить</button><button id="cfg" aria-label="Подключение">⚙</button></header>
 <div id="setup" hidden>
  <h2>Настройки</h2><label for="lg">Язык / Language</label><select id="lg"><option value="ru">Русский</option><option value="en">English</option></select><div id="conn"><h3>Подключение к таблице</h3><p>Вставьте адрес веб-приложения Apps Script (оканчивается на /exec) и секретный ключ WEB_KEY. Они хранятся только на этом устройстве.</p>
@@ -154,6 +154,7 @@ function ask(msg,withDel,danger){return new Promise(res=>{const m=$('#cf'),a=$('
 async function fetchT(u,o,ms){const ac=new AbortController(),h=setTimeout(()=>ac.abort(),ms||90000);try{return await fetch(u,Object.assign({signal:ac.signal},o||{}))}catch(e){if(e.name==='AbortError')throw new Error('Сервер отвечает слишком долго. Повторите.');throw e}finally{clearTimeout(h)}}
 const hp=new URLSearchParams(location.hash.slice(1)),TG=hp.get('tgWebAppData')||'',X=new URLSearchParams(location.search).get('x');
 if(X&&/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(X))L.setItem('tr_u',X);
+if(TG)document.body.classList.add('tgw');
 if(TG){const sc=document.createElement('script');sc.src='https://telegram.org/js/telegram-web-app.js';sc.onload=()=>{try{Telegram.WebApp.ready();Telegram.WebApp.expand();Telegram.WebApp.setHeaderColor('#006B80');Telegram.WebApp.BackButton.onClick(()=>history.back())}catch(_){}};document.head.appendChild(sc);}
 try{D=JSON.parse(L.getItem('tr_cache'))}catch(_){}
 const cfg=()=>({u:L.getItem('tr_u')||'',k:L.getItem('tr_k')||'',n:L.getItem('tr_n')||''});
@@ -304,14 +305,16 @@ let IM=null,IP=[],scanning=false,creating=false;
 const STATE={new:['🟢 новая'],returned:['🔄 вернулась'],open:['⏭ уже открыта'],dup:['⏭ повтор в списке'],unknown:['📍 выберите станцию'],chg:['✎ проверится при создании']};
 function impOpen(files,text){IP=[];IM=null;$('#it').value=text||'';$('#i1').hidden=false;$('#i2').hidden=true;$('#i3').hidden=true;drawImp();$('#imp').hidden=false;navPush('imp');if(files&&files.length)addImpFiles(files)}
 function drawImp(){$('#ip').innerHTML=IP.map((p,k)=>'<div class="ph"><img alt="Скриншот '+(k+1)+'" src="'+p+'"><button data-irm="'+k+'" aria-label="Убрать">✕</button></div>').join('')}
-async function addImpFiles(files){for(const f of files){if(IP.length>=3){toast('Максимум 3 снимка');break}if(!/^image\//.test(f.type))continue;try{IP.push(await shrink(f,2200,.8))}catch(e){toast(e.message)}}drawImp()}
+async function addImpFiles(files){for(const f of files){if(IP.length>=3){toast('Максимум 3 снимка');break}if(!/^image\//.test(f.type))continue;try{IP.push(await shrink(f,1800,.72))}catch(e){toast(e.message)}}drawImp()}
 $('#impb').onclick=()=>{if(!D){toast('Данные ещё не загружены');return}impOpen()};
 $('#toimp').onclick=async()=>{const t=$('#ft').value,ph=FP.slice(0,3);await closeAll();impOpen(null,t);IP=ph;drawImp()};
 $('#icam').onchange=e=>{addImpFiles([...e.target.files]);e.target.value=''};$('#igal').onchange=e=>{addImpFiles([...e.target.files]);e.target.value=''};
 $('#ip').onclick=e=>{const b=e.target.closest('[data-irm]');if(b){IP.splice(+b.dataset.irm,1);drawImp()}};
 $('#iclose').onclick=$('#idone').onclick=()=>{closeAll()};
-async function post(api,body){const r=await fetchT(url(api),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)},150000),t=await r.text();let j;
- try{j=JSON.parse(t)}catch(_){throw new Error('Google-сервер не ответил. Повторите: дубликата не будет.')}
+async function post(api,body){let t,j,sn='';
+ for(let n=0;n<2;n++){const r=await fetchT(url(api),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)},150000);t=await r.text();
+  try{j=JSON.parse(t);break}catch(_){j=null;sn=t.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,140);if(api!=='importscan'&&api!=='create'&&api!=='importcreate'&&api!=='edit')break;await new Promise(z=>setTimeout(z,1500))}}
+ if(!j)throw new Error('Google-сервер не ответил. Повторите: дубликата не будет.'+(sn?' ['+sn+']':''));
  if(!j.ok)throw new Error(j.error==='auth'?'Нет доступа':j.error);return j.data}
 $('#iscan').onclick=async()=>{if(scanning)return;if(!IP.length&&!$('#it').value.trim()){toast('Добавьте скриншот или вставьте текст');return}
  $('#ierr').hidden=true;scanning=true;$('#iscan').disabled=true;$('#iscan').textContent=T('Распознаю… до минуты');
